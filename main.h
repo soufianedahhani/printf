@@ -7,8 +7,12 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdlib.h>
-int _printf(const char *format, ...);
-void print_buffer(char buffer[], int *buff_ind);
+
+
+int printf_string(va_list args) ;
+int printf_char(va_list args) ;
+int printf_37(va_list args) ;
+int printf_int(va_list args);
 
 #endif
 
