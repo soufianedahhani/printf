@@ -1,57 +1,49 @@
+ii#include <stdarg.h>
 #include <unistd.h>
-#include <stdarg.h>
 
 /**
- * _printf - Custom printf function
- * @format: Format string
- *
- * Return: Number of characters printed (excluding the null byte)
+ * Custom printf function that supports character ('c') and string ('s') format specifiers.
+ * Prints the formatted output to the standard output.
+ * Returns the total number of characters printed.
  */
-int _printf(const char *format, ...)
+int my_printf(const char* format, ...)
 {
     va_list args;
-    int count = 0;
-    char c;
-    char *str;
+    va_start(args, format); // Initialize the variable arguments
 
-    va_start(args, format);
+    int count = 0; // Variable to keep track of the character count
 
-    while (*format)
-    {
-        if (*format != '%')
-        {
-            write(1, format, 1);
-            count++;
-        }
-        else
-        {
-            format++;
-            switch (*format)
-            {
-                case 'c':
-                    c = va_arg(args, int);
-                    write(1, &c, 1);
-                    count++;
-                    break;
-                case 's':
-                    str = va_arg(args, char *);
-                    while (*str)
-                    {
-                        write(1, str, 1);
-                        str++;
-                        count++;
-                    }
-                    break;
-                default:
-                    write(1, format - 1, 2);
-                    count += 2;
-                    break;
+    for (int i = 0; format[i] != '\0'; ++i) {
+        if (format[i] == '%') {
+            // Handle format specifiers
+            ++i;
+            if (format[i] == 'c') {
+                // Character format specifier
+                int c = va_arg(args, int); // Get the character argument from the variable arguments
+                write(STDOUT_FILENO, &c, 1); // Write the character to the standard output
+                ++count; // Increment the character count
+            } else if (format[i] == 's') {
+                // String format specifier
+                const char* s = va_arg(args, const char*); // Get the string argument from the variable arguments
+                int len = 0;
+                while (s[len] != '\0')
+                    ++len;
+                write(STDOUT_FILENO, s, len); // Write the string to the standard output
+                count += len; // Increment the character count by the length of the string
+            } else {
+                // Invalid format specifier
+                write(STDOUT_FILENO, "%", 1); // Write '%' character
+                write(STDOUT_FILENO, &format[i], 1); // Write the invalid format specifier
+                count += 2; // Increment the character count by 2 (for '%' and the invalid specifier)
             }
+        } else {
+            // Regular character
+            write(STDOUT_FILENO, &format[i], 1); // Write the character to the standard output
+            ++count; // Increment the character count
         }
-        format++;
     }
 
-    va_end(args);
+    va_end(args); // Clean up the variable arguments
 
-    return count;
+    return count; // Return the total number of characters printed
 }
