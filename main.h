@@ -1,0 +1,1 @@
+int prinft(const format[],...);
