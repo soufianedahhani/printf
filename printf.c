@@ -1,6 +1,6 @@
 #include "main.h"
 
-int printf(const char* format, ...)
+int _printf(const char* format, ...)
 {
     va_list args;
     va_start(args, format);
