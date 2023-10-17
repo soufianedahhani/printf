@@ -1,6 +1,4 @@
-ii#include <stdarg.h>
-#include <unistd.h>
-
+#include "main.h"
 /**
  * Custom printf function that supports character ('c') and string ('s') format specifiers.
  * Prints the formatted output to the standard output.
