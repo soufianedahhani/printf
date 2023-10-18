@@ -1,72 +1,80 @@
 #include "main.h"
-typedef struct {
-    const char* id;
-    int (*f)(va_list);
-} convert_match;
+// this method checks the number og charachers on printf and also  print it on stdout 
 
-int printf_string(va_list args) {
-    const char* s = va_arg(args, const char*);
-    int len = 0;
-    while (s[len] != '\0')
-        ++len;
-    write(STDOUT_FILENO, s, len);
-    return len;
-}
-
-int printf_char(va_list args) {
-    int c = va_arg(args, int);
-    write(STDOUT_FILENO, &c, 1);
-    return 1;
-}
-
-int printf_37(va_list args) {
-    write(STDOUT_FILENO, "%", 1);
-    return 1;
-}
-
-int printf_int(va_list args) {
-    int num = va_arg(args, int);
-    char buffer[20];
-    int len = sprintf(buffer, "%d", num);
-    write(STDOUT_FILENO, buffer, len);
-    return len;
-}
-
-// Add implementations for other conversion specifiers as needed
-
-int my_printf(const char* format, ...)
+int _printf(const char *format, ...)
 {
-    convert_match m[] = {
-        {"%s", printf_string},
-        {"%c", printf_char},
-        {"%%", printf_37},
-        {"%d", printf_int},
-        // Add other conversion specifiers and their corresponding functions here
-    };
-
     va_list args;
-    int i = 0, j, len = 0;
-
     va_start(args, format);
-    if (format == NULL || (format[0] == '%' && format[1] == '\0'))
+    int i = 0;
+    int count = 0;
+// here we handle  the  case where we input no argument or one witch is only % following by null byte
+if (format == NULL || (format[0] == '%' && format[1] == '\0'))
         return -1;
-
-    while (format[i] != '\0') {
-        j = 0;
-        while (j < sizeof(m) / sizeof(m[0])) {
-            if (m[j].id[0] == format[i] && m[j].id[1] == format[i + 1]) {
-                len += m[j].f(args);
-                i = i + 2;
-                break;
-            }
-            j++;
-        }
-        if (j == sizeof(m) / sizeof(m[0])) {
+    while (format[i] != '\0')
+    {
+        if (format[i] != '%')
+        {// counting the characher before the variable
             write(STDOUT_FILENO, &format[i], 1);
-            len++;
-            i++;
+            count++;
         }
+        else
+        { 
+            i++;
+            switch (format[i])
+            {
+                case 'c':
+                {
+                    char ch = (char)va_arg(args, int);
+                    write(STDOUT_FILENO, &ch, 1); count++;
+                    break; // displaying the char  we castle the int into char as int can be converted to char 
+                }
+                case 's' :
+                {        const char* s = va_arg(args, const char*); // here we display the string as pointer of char 
+             int len = 0;
+                while (s[len] != '\0')
+                  ++len;
+
+                write(STDOUT_FILENO, s, len);
+		count+=len;
+                    break;}
+                     case 'd':// as int is part of unsigned we treat all on unsigned case
+                case 'i':
+                {
+                    int num = va_arg(args, int);
+                    int temp = num;
+                    int digits = 0;
+                    if (num == 0) {
+                        write(STDOUT_FILENO, "0", 1);
+                        count++;
+                    }
+                    else if (num < 0) {//case the number is negative we display - then we make it positive and display it 
+                        write(STDOUT_FILENO, "-", 1);
+                        count++;
+                        temp = -temp;
+                    } // this is famous script to count the number of digits
+                    while (temp != 0) {
+                        temp = temp / 10;
+                        digits++;
+                    }
+                    char buffer[digits]; // here we make the int as table of char by converting it by ASSCI Code
+                    for (int j = digits - 1; j >= 0; j--) {
+                        buffer[j] = '0' + (num % 10);
+                        num = num / 10;
+                    }
+                    write(STDOUT_FILENO, buffer, digits);
+                    count += digits;
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        i++;
     }
+
     va_end(args);
-    return len;
+
+    return count;
 }
+
